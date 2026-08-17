@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Portal - {{ patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-person-heart text-primary me-2"></i>Welcome, {{ patient.full_name }}</h2>
+            <p class="text-muted mb-0">Patient ID: <span class="fw-semibold text-primary">{{ patient.patient_id }}</span> | Blood: <span class="badge bg-danger-subtle text-danger">{{ patient.blood_group }}</span></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'book_appointment_patient' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i> Book New Consultation</a>
+            <a href="{% url 'patient_my_profile' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-gear me-1"></i> Medical Profile</a>
+        </div>
+    </div>
+
+    <!-- Active & Upcoming Appointments -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-calendar2-check text-primary me-2"></i>Upcoming Consultations</h5>
+                    <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary btn-sm">All Bookings</a>
+                </div>
+
+                <div class="list-group list-group-flush">
+                    {% for appt in upcoming_appointments %}
+                        <div class="list-group-item px-0 py-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-primary-subtle text-primary mb-1">{{ appt.appointment_date }} @ {{ appt.get_appointment_time_display }}</span>
+                                    <h6 class="fw-bold mb-0 text-dark">{{ appt.doctor.full_name }}</h6>
+                                    <small class="text-muted">{{ appt.doctor.specialization }} ({{ appt.department.name }})</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if appt.status == 'CONFIRMED' %}
+                                        <span class="badge bg-success mb-2 d-block">Confirmed</span>
+                                    {% elif appt.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark mb-2 d-block">Pending Approval</span>
+                                    {% endif %}
+                                    <a href="{% url 'cancel_appointment' appt.pk %}" class="btn btn-outline-danger btn-sm py-0 px-2">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-calendar-x fs-2 d-block mb-2 text-muted opacity-50"></i>
+                            <p class="mb-2">You have no upcoming consultations.</p>
+                            <a href="{% url 'book_appointment_patient' %}" class="btn btn-sm btn-primary">Schedule Now</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescriptions & Invoices -->
+        <div class="col-lg-5">
+            <!-- Digital Prescriptions -->
+            <div class="card card-custom p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-medical text-success me-2"></i>Digital Prescriptions</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for rx in recent_prescriptions %}
+                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ rx.diagnosis|truncatechars:28 }}</h6>
+                                <small class="text-muted">{{ rx.doctor.full_name }} | {{ rx.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <a href="{% url 'prescription_detail' rx.pk %}" class="btn btn-sm btn-outline-success"><i class="bi bi-file-text me-1"></i> View Rx</a>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small my-2">No prescriptions uploaded yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Billing / Invoices Status -->
+            <div class="card card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-receipt-cutoff text-info me-2"></i>Invoices & Payments</h5>
+                    <a href="{% url 'payment_list' %}" class="btn btn-outline-secondary btn-sm">All Invoices</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for payment in fee_payments %}
+                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold text-dark">{{ payment.invoice_number }}</span>
+                                <small class="d-block text-muted">{{ payment.appointment.doctor.full_name }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="d-block fw-bold">${{ payment.total_amount }}</span>
+                                {% if payment.payment_status == 'PAID' %}
+                                    <span class="badge bg-success-subtle text-success">Paid</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Due: ${{ payment.due_amount }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small my-2">No invoices generated yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

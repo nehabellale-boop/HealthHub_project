@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ doctor.full_name }} - Specialist Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 p-md-5">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 border-bottom pb-4 gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary fs-2">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-dark">{{ doctor.full_name }}</h2>
+                        <span class="badge bg-primary fs-6">{{ doctor.specialization }}</span>
+                        <span class="text-muted ms-2">{{ doctor.department.name }}</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge {% if doctor.availability_status == 'AVAILABLE' %}bg-success{% else %}bg-warning text-dark{% endif %} p-2">
+                        {{ doctor.get_availability_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted small fw-semibold">QUALIFICATION</h6>
+                    <p class="fw-bold fs-6">{{ doctor.qualification }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted small fw-semibold">CLINICAL EXPERIENCE</h6>
+                    <p class="fw-bold fs-6">{{ doctor.experience_years }} Years of Practice</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted small fw-semibold">CONSULTATION FEE</h6>
+                    <p class="fw-bold fs-5 text-success">${{ doctor.consultation_fee }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted small fw-semibold">DOCTOR ID CODE</h6>
+                    <p class="fw-bold fs-6 text-primary">{{ doctor.doctor_id }}</p>
+                </div>
+                <div class="col-12">
+                    <h6 class="text-muted small fw-semibold">BIOGRAPHY & CLINICAL INTERESTS</h6>
+                    <p class="text-muted">{{ doctor.bio|default:"Dedicated specialist committing to comprehensive patient health, precise diagnostics, and tailored therapeutic regimes." }}</p>
+                </div>
+            </div>
+
+            <div class="border-top pt-4 d-flex justify-content-between align-items-center">
+                <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Doctors</a>
+                {% if user.is_authenticated and user.role == 'PATIENT' %}
+                    <a href="{% url 'book_appointment_patient' %}?doctor={{ doctor.pk }}" class="btn btn-primary btn-lg"><i class="bi bi-calendar-plus me-2"></i> Book Appointment with {{ doctor.full_name }}</a>
+                {% elif not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Sign In to Book Appointment</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

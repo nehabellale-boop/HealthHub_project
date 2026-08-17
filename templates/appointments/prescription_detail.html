@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescription - {{ prescription.patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Printable Prescription Sheet -->
+            <div class="card card-custom p-4 p-md-5 bg-white border print-section">
+                <!-- Prescription Header -->
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-primary text-white">
+                            <i class="bi bi-hospital fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-primary">ST. JUDE HEALTHCARE & RESEARCH HOSPITAL</h4>
+                            <p class="text-muted small mb-0">742 Evergreen Healthcare Ave | Ph: +1 (800) 555-911 | clinical@stjudehospital.org</p>
+                        </div>
+                    </div>
+                    <div class="text-end d-print-none">
+                        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i> Print Rx</button>
+                    </div>
+                </div>
+
+                <!-- Doctor & Patient Info Row -->
+                <div class="row g-3 mb-4 pb-3 border-bottom">
+                    <div class="col-6">
+                        <small class="text-muted fw-bold d-block">CONSULTING PHYSICIAN</small>
+                        <h5 class="fw-bold mb-0 text-dark">Dr. {{ prescription.doctor.full_name }}</h5>
+                        <div class="text-muted small">{{ prescription.doctor.specialization }} ({{ prescription.doctor.department.name }})</div>
+                        <div class="text-muted small">Degrees: {{ prescription.doctor.qualification }}</div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted fw-bold d-block">PATIENT DETAILS</small>
+                        <h5 class="fw-bold mb-0 text-dark">{{ prescription.patient.full_name }}</h5>
+                        <div class="text-muted small">ID: {{ prescription.patient.patient_id }} | Gender: {{ prescription.patient.get_gender_display }}</div>
+                        <div class="text-muted small">Blood: <span class="fw-bold text-danger">{{ prescription.patient.blood_group }}</span> | Date: {{ prescription.created_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+
+                <!-- Rx Symbol & Diagnosis -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-baseline gap-2 mb-2">
+                        <span class="fs-3 fw-bold text-primary font-monospace">℞</span>
+                        <h6 class="fw-bold text-muted mb-0">DIAGNOSIS:</h6>
+                    </div>
+                    <div class="p-3 bg-light rounded-3 border">
+                        <strong class="fs-6 text-dark">{{ prescription.diagnosis }}</strong>
+                    </div>
+                </div>
+
+                <!-- Medication Table / List -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-muted mb-2">PRESCRIBED MEDICINES:</h6>
+                    <div class="p-3 bg-light rounded-3 border">
+                        <pre class="mb-0 text-dark fs-6" style="white-space: pre-wrap; font-family: inherit;">{{ prescription.prescription_medicines }}</pre>
+                    </div>
+                </div>
+
+                <!-- Dosage & Instructions -->
+                {% if prescription.dosage_instructions %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-muted mb-2">DOSAGE & INSTRUCTIONS:</h6>
+                        <p class="text-muted p-3 bg-light rounded-3 border mb-0">{{ prescription.dosage_instructions }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Follow-up -->
+                {% if prescription.follow_up_date %}
+                    <div class="p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 mb-4 text-primary fw-semibold">
+                        <i class="bi bi-calendar-event me-2"></i> Recommended Follow-up Date: {{ prescription.follow_up_date }}
+                    </div>
+                {% endif %}
+
+                <!-- Signature footer -->
+                <div class="row pt-5 mt-4">
+                    <div class="col-6">
+                        <small class="text-muted">Appointment Ref: {{ prescription.appointment.appointment_id }}</small>
+                    </div>
+                    <div class="col-6 text-end">
+                        <div class="border-top pt-2 d-inline-block text-center" style="min-width: 200px;">
+                            <strong>Dr. {{ prescription.doctor.full_name }}</strong>
+                            <small class="d-block text-muted">Authorized Medical Practitioner</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-3 d-print-none">
+                <a href="{% url 'appointment_detail' prescription.appointment.pk %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Appointment</a>
+                <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer me-2"></i> Print Official Prescription</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Outstanding Fee Reminders - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
+                Revenue Recovery
+            </span>
+            <h2 class="fw-bold mb-1">Outstanding Fee Records & Patient Reminders</h2>
+            <p class="text-muted mb-0">Track unpaid or partially settled consultation invoices and trigger automated email reminders.</p>
+        </div>
+        <a href="{% url 'payment_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Invoices</a>
+    </div>
+
+    <!-- Total Due Highlight -->
+    <div class="card card-custom p-4 mb-4 border-start border-4 border-danger bg-danger bg-opacity-10">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="fw-bold text-danger mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i> Total Outstanding Uncollected Dues</h5>
+                <p class="text-muted mb-0">Aggregate unpaid balances across all active patient consultations.</p>
+            </div>
+            <div class="text-md-end">
+                <h2 class="fw-bold text-danger mb-0">${{ total_due }}</h2>
+                <small class="text-muted">{{ unpaid_payments.count }} pending invoice{{ unpaid_payments.count|pluralize }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unpaid Invoices Table -->
+    <div class="card card-custom">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Patient Name</th>
+                            <th>Contact / Email</th>
+                            <th>Doctor & Date</th>
+                            <th>Total Fee</th>
+                            <th>Paid</th>
+                            <th>Balance Due</th>
+                            <th>Status</th>
+                            <th>Last Reminder</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in unpaid_payments %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'invoice_detail' p.pk %}" class="fw-bold text-decoration-none">{{ p.invoice_number }}</a>
+                                </td>
+                                <td>
+                                    <strong>{{ p.patient.full_name }}</strong>
+                                    <div class="text-muted small">{{ p.patient.patient_id }}</div>
+                                </td>
+                                <td>
+                                    <div>{{ p.patient.phone }}</div>
+                                    <small class="text-muted">{{ p.patient.email }}</small>
+                                </td>
+                                <td>
+                                    <div>Dr. {{ p.appointment.doctor.full_name }}</div>
+                                    <small class="text-muted">{{ p.appointment.appointment_date }}</small>
+                                </td>
+                                <td>${{ p.total_amount }}</td>
+                                <td class="text-success">${{ p.paid_amount }}</td>
+                                <td class="text-danger fw-bold fs-6">${{ p.due_amount }}</td>
+                                <td>
+                                    <span class="badge {% if p.payment_status == 'PARTIALLY_PAID' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ p.get_payment_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if p.last_reminder_sent %}
+                                        <small class="text-muted">{{ p.last_reminder_sent|date:"M d, Y H:i" }}</small>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">Never</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <a href="{% url 'send_fee_reminder_single' p.pk %}" class="btn btn-sm btn-outline-warning" title="Send Reminder Email">
+                                            <i class="bi bi-bell-fill me-1"></i> Remind
+                                        </a>
+                                        <a href="{% url 'payment_update' p.pk %}" class="btn btn-sm btn-outline-success" title="Record Payment">
+                                            <i class="bi bi-cash"></i> Settle
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center py-5 text-muted">
+                                    <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                                    All patient consultation invoices have been settled in full!
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

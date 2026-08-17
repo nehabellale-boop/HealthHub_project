@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}My Account Profile - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 p-md-5">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                <div>
+                    <h3 class="fw-bold mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h3>
+                    <span class="badge bg-primary badge-role">{{ user_obj.get_role_display }}</span>
+                    <span class="text-muted small ms-2">Member since {{ user_obj.date_joined|date:"M Y" }}</span>
+                </div>
+                <a href="{% url 'dashboard_redirect' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Phone Number</label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Address</label>
+                        {{ form.address }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Profile Photo</label>
+                        {{ form.profile_image }}
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i> Update Profile Info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

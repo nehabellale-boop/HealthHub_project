@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}St. Jude Hospital - Excellence in Healthcare{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row align-items-center py-4 py-lg-5 mb-4">
+    <div class="col-lg-7">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+            <i class="bi bi-shield-check me-1"></i> Compassionate Care & Research Excellence
+        </span>
+        <h1 class="display-5 fw-bold text-dark mb-3">Next-Generation Hospital Management & Clinical Care</h1>
+        <p class="lead text-muted mb-4">
+            St. Jude Hospital offers world-class medical specialists, streamlined online doctor appointments, digital prescription archives, transparent billing, and dedicated patient care management.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard_redirect' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                    <i class="bi bi-speedometer2 me-2"></i> Go to My Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                    <i class="bi bi-calendar-plus me-2"></i> Patient Registration
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Staff & Patient Login
+                </a>
+            {% endif %}
+            <a href="{% url 'doctor_list' %}" class="btn btn-light btn-lg px-4 border">
+                <i class="bi bi-search me-2"></i> Browse Doctors
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-5 mt-4 mt-lg-0 text-center">
+        <div class="card card-custom p-4 bg-white shadow-sm border-0">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+                <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Portals</h5>
+                <span class="badge bg-success">Online 24/7</span>
+            </div>
+            <div class="row g-2 text-start">
+                <div class="col-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <i class="bi bi-heart-pulse fs-3 text-danger mb-1 d-block"></i>
+                        <h6 class="fw-bold mb-1">Emergency</h6>
+                        <small class="text-muted d-block">+1 (800) 555-911</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <i class="bi bi-calendar2-check fs-3 text-primary mb-1 d-block"></i>
+                        <h6 class="fw-bold mb-1">Appointments</h6>
+                        <small class="text-muted d-block">Instant Slot Booking</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <i class="bi bi-file-earmark-medical fs-3 text-success mb-1 d-block"></i>
+                        <h6 class="fw-bold mb-1">Prescriptions</h6>
+                        <small class="text-muted d-block">Doctor Notes & Rx</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 border rounded-3 bg-light">
+                        <i class="bi bi-receipt fs-3 text-info mb-1 d-block"></i>
+                        <h6 class="fw-bold mb-1">Billing & Invoices</h6>
+                        <small class="text-muted d-block">Direct Payment Slips</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Overview -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Clinical Departments & Centers of Excellence</h3>
+            <p class="text-muted mb-0">Explore our specialized medical divisions led by board-certified physicians.</p>
+        </div>
+        <a href="{% url 'doctor_list' %}" class="btn btn-outline-primary btn-sm">View All Specialists <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+
+    <div class="row g-4">
+        {% for dept in departments %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi {{ dept.icon|default:'bi-hospital' }}"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">{{ dept.name }}</h5>
+                            <small class="text-muted">{{ dept.total_doctors }} Specialists on duty</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">{{ dept.description|truncatewords:20|default:"Dedicated department providing comprehensive diagnostic, surgical, and therapeutic medical treatments." }}</p>
+                    {% if dept.head_of_department %}
+                        <div class="border-top pt-2 mt-auto">
+                            <small class="text-muted"><i class="bi bi-person-check me-1"></i> Head: <strong>{{ dept.head_of_department }}</strong></small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Clinical departments are being initialized.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Key Features Bento Grid -->
+<div class="card card-custom p-4 bg-primary text-white mb-5 border-0">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h3 class="fw-bold mb-2">Role-Based Hospital Security Architecture</h3>
+            <p class="mb-0 text-white-50">Built-in authentication, strict object-level validation, multi-user workflows for Administrators, Doctors, Patients, Receptionists, and HR Staff with zero data leakage.</p>
+        </div>
+        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+            {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn btn-light text-primary fw-bold px-4 py-2">Access Portal</a>
+            {% else %}
+                <a href="{% url 'dashboard_redirect' %}" class="btn btn-light text-primary fw-bold px-4 py-2">My Portal Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

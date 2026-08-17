@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}My Assigned Patients - Dr. {{ doctor.full_name }}{% endblock %}
+
+{% block content %}
+<div class="py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>My Assigned Patients</h2>
+            <p class="text-muted mb-0">Confidential medical records for patients booked with Dr. {{ doctor.full_name }}.</p>
+        </div>
+        <a href="{% url 'doctor_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Doctor Dashboard</a>
+    </div>
+
+    <div class="card card-custom p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Patient Full Name</th>
+                        <th>Gender / Blood</th>
+                        <th>Emergency Contact</th>
+                        <th>Last Consultation</th>
+                        <th>Last Status</th>
+                        <th>Medical Record</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in patient_records %}
+                        <tr>
+                            <td><span class="badge bg-light text-primary border fw-bold">{{ item.patient.patient_id }}</span></td>
+                            <td>
+                                <strong>{{ item.patient.full_name }}</strong>
+                                <small class="d-block text-muted">{{ item.patient.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary">{{ item.patient.get_gender_display }}</span>
+                                <span class="badge bg-danger-subtle text-danger">{{ item.patient.blood_group }}</span>
+                            </td>
+                            <td><small class="text-muted">{{ item.patient.emergency_contact|default:"None listed" }}</small></td>
+                            <td>{{ item.last_visit }}</td>
+                            <td><span class="badge bg-info-subtle text-info">{{ item.last_status }}</span></td>
+                            <td>
+                                <a href="{% url 'appointment_detail' item.appointment_id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark-medical me-1"></i> View Record
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                No assigned patient records yet.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

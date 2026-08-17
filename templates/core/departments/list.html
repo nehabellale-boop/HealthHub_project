@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Hospital Departments - Administration{% endblock %}
+
+{% block content %}
+<div class="py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-building text-primary me-2"></i>Clinical Departments</h2>
+            <p class="text-muted mb-0">Manage hospital clinical divisions, centers of excellence, and department heads.</p>
+        </div>
+        <a href="{% url 'department_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Department</a>
+    </div>
+
+    <!-- Search bar -->
+    <div class="card card-custom p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search department name or description...">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+                {% if query %}
+                    <a href="{% url 'department_list' %}" class="btn btn-outline-secondary">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Department Grid -->
+    <div class="row g-3">
+        {% for dept in departments %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi {{ dept.icon|default:'bi-hospital' }}"></i>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="{% url 'department_update' dept.pk %}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'department_delete' dept.pk %}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-dark">{{ dept.name }}</h5>
+                    <p class="text-muted small mb-3 flex-grow-1">{{ dept.description|default:"Specialized department offering diagnostics and treatment." }}</p>
+                    
+                    <div class="border-top pt-2 mt-auto d-flex justify-content-between align-items-center small text-muted">
+                        <span><i class="bi bi-person-badge me-1"></i> {{ dept.total_doctors }} Doctors</span>
+                        <span>Head: <strong>{{ dept.head_of_department|default:"Unassigned" }}</strong></span>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No clinical departments match your query.</p>
+                <a href="{% url 'department_create' %}" class="btn btn-primary btn-sm">Create First Department</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

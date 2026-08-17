@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Doctors - Admin Directory{% endblock %}
+
+{% block content %}
+<div class="py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-person-badge-fill text-primary me-2"></i>Doctor Records Administration</h2>
+            <p class="text-muted mb-0">Full hospital roster, credentials, department assignments, and doctor lifecycle.</p>
+        </div>
+        <a href="{% url 'doctor_create_admin' %}" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Register New Doctor</a>
+    </div>
+
+    <!-- Search Card -->
+    <div class="card card-custom p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by doctor name, Doctor ID, email, specialization...">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+                {% if query %}
+                    <a href="{% url 'doctor_list_admin' %}" class="btn btn-outline-secondary">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Doctors Table -->
+    <div class="card card-custom p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Doctor ID</th>
+                        <th>Physician Name</th>
+                        <th>Department</th>
+                        <th>Specialization</th>
+                        <th>Status</th>
+                        <th>Fee</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in doctors %}
+                        <tr>
+                            <td><span class="badge bg-light text-primary border">{{ doc.doctor_id }}</span></td>
+                            <td>
+                                <strong>{{ doc.full_name }}</strong>
+                                <small class="d-block text-muted">{{ doc.email }} | {{ doc.phone_number|default:"No phone" }}</small>
+                            </td>
+                            <td>{{ doc.department.name }}</td>
+                            <td>{{ doc.specialization }}</td>
+                            <td>
+                                {% if doc.employment_status == 'ACTIVE' %}<span class="badge bg-success">Active</span>
+                                {% elif doc.employment_status == 'ON_LEAVE' %}<span class="badge bg-warning text-dark">On Leave</span>
+                                {% else %}<span class="badge bg-secondary">{{ doc.get_employment_status_display }}</span>{% endif %}
+                            </td>
+                            <td class="fw-bold text-success">${{ doc.consultation_fee }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'doctor_detail' doc.pk %}" class="btn btn-outline-secondary" title="View Profile"><i class="bi bi-eye"></i></a>
+                                    <a href="{% url 'doctor_delete_admin' doc.pk %}" class="btn btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No doctor records found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

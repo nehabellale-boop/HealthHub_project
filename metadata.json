@@ -1,0 +1,6 @@
+{
+  "name": "HealthHub",
+  "description": "A comprehensive, enterprise-grade role-based healthcare management SaaS platform supporting Admin, Doctor, Patient, Receptionist, and HR roles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

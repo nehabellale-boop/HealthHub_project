@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment {{ appointment.appointment_id }} - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="py-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- Appointment Card -->
+            <div class="card card-custom p-4 p-md-5 mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 border-bottom pb-3 gap-2">
+                    <div>
+                        <span class="badge bg-light text-primary border fw-bold">REF: {{ appointment.appointment_id }}</span>
+                        <h2 class="fw-bold mb-0 mt-1">Consultation Appointment</h2>
+                        <small class="text-muted">Booked on {{ appointment.created_at|date:"M d, Y @ H:i" }}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if appointment.status == 'COMPLETED' %}
+                            <span class="badge bg-success fs-6 px-3 py-2">Completed</span>
+                        {% elif appointment.status == 'CONFIRMED' %}
+                            <span class="badge bg-primary fs-6 px-3 py-2">Confirmed</span>
+                        {% elif appointment.status == 'PENDING' %}
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">Pending Approval</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6 px-3 py-2">Cancelled</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h6 class="text-primary fw-bold mb-2"><i class="bi bi-person-fill me-1"></i> Patient Details</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ appointment.patient.full_name }}</p>
+                            <p class="mb-1"><strong>Patient ID:</strong> {{ appointment.patient.patient_id }}</p>
+                            <p class="mb-1"><strong>Blood Group:</strong> {{ appointment.patient.blood_group }}</p>
+                            <p class="mb-0"><strong>Phone:</strong> {{ appointment.patient.phone_number|default:"-" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h6 class="text-primary fw-bold mb-2"><i class="bi bi-person-badge me-1"></i> Doctor & Department</h6>
+                            <p class="mb-1"><strong>Doctor:</strong> {{ appointment.doctor.full_name }}</p>
+                            <p class="mb-1"><strong>Specialization:</strong> {{ appointment.doctor.specialization }}</p>
+                            <p class="mb-1"><strong>Department:</strong> {{ appointment.department.name }}</p>
+                            <p class="mb-0"><strong>Fee:</strong> ${{ appointment.doctor.consultation_fee }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h6 class="text-primary fw-bold mb-2"><i class="bi bi-calendar-check me-1"></i> Slot & Schedule</h6>
+                            <p class="mb-1"><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                            <p class="mb-0"><strong>Time:</strong> {{ appointment.get_appointment_time_display }}</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <h6 class="text-primary fw-bold mb-2"><i class="bi bi-receipt me-1"></i> Billing Summary</h6>
+                            {% if payment %}
+                                <p class="mb-1"><strong>Invoice:</strong> {{ payment.invoice_number }}</p>
+                                <p class="mb-0"><strong>Status:</strong> <span class="badge {% if payment.payment_status == 'PAID' %}bg-success{% else %}bg-danger{% endif %}">{{ payment.get_payment_status_display }}</span></p>
+                            {% else %}
+                                <p class="text-muted mb-0 small">No invoice generated yet.</p>
+                                {% if user.role in 'ADMIN,RECEPTIONIST' or user.is_superuser %}
+                                    <a href="{% url 'payment_create' %}?appointment={{ appointment.pk }}" class="btn btn-sm btn-outline-primary mt-2">Generate Invoice</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <h6 class="text-muted small fw-semibold">SYMPTOMS & REASON FOR VISIT</h6>
+                        <div class="p-3 bg-light rounded-3 border">
+                            {{ appointment.symptoms|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor / Staff Status Actions -->
+                {% if user.role == 'DOCTOR' and appointment.doctor == user.doctor_profile %}
+                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                        <form method="post" action="{% url 'update_appointment_status' appointment.pk %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                <option value="CONFIRMED" {% if appointment.status == 'CONFIRMED' %}selected{% endif %}>Mark Confirmed</option>
+                                <option value="COMPLETED" {% if appointment.status == 'COMPLETED' %}selected{% endif %}>Mark Completed</option>
+                                <option value="CANCELLED" {% if appointment.status == 'CANCELLED' %}selected{% endif %}>Mark Cancelled</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Update Status</button>
+                        </form>
+                        <a href="{% url 'create_prescription' appointment.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-prescription me-1"></i> Add / Edit Prescription</a>
+                    </div>
+                {% endif %}
+
+                <!-- Patient Cancel action -->
+                {% if user.role == 'PATIENT' and appointment.patient == user.patient_profile and appointment.status != 'COMPLETED' and appointment.status != 'CANCELLED' %}
+                    <div class="border-top pt-3 text-end">
+                        <a href="{% url 'cancel_appointment' appointment.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle me-1"></i> Cancel My Appointment</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Prescription preview if exists -->
+            {% if prescription %}
+                <div class="card card-custom p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h4 class="fw-bold mb-0 text-success"><i class="bi bi-prescription2 me-2"></i>Official Medical Prescription</h4>
+                        <a href="{% url 'prescription_detail' prescription.pk %}" class="btn btn-outline-success btn-sm"><i class="bi bi-printer me-1"></i> Printable Prescription</a>
+                    </div>
+                    <div class="mb-3">
+                        <strong class="d-block text-muted small">DIAGNOSIS:</strong>
+                        <p class="fs-6 fw-semibold text-dark">{{ prescription.diagnosis }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong class="d-block text-muted small">MEDICINES:</strong>
+                        <pre class="p-3 bg-light rounded border text-dark font-monospace">{{ prescription.prescription_medicines }}</pre>
+                    </div>
+                    {% if prescription.dosage_instructions %}
+                        <div class="mb-3">
+                            <strong class="d-block text-muted small">DOSAGE & INSTRUCTIONS:</strong>
+                            <p class="text-muted">{{ prescription.dosage_instructions }}</p>
+                        </div>
+                    {% endif %}
+                    {% if prescription.follow_up_date %}
+                        <div class="border-top pt-2 text-muted small">
+                            <i class="bi bi-calendar-event me-1 text-primary"></i> Follow-up consultation recommended on: <strong>{{ prescription.follow_up_date }}</strong>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

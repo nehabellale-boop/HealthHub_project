@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard - Dr. {{ doctor.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="py-2">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-heart-pulse-fill text-primary me-2"></i>Welcome, Dr. {{ doctor.user.get_full_name }}</h2>
+            <p class="text-muted mb-0">{{ doctor.specialization }} | {{ doctor.department.name }} | Consultation Fee: ${{ doctor.consultation_fee }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'doctor_assigned_patients' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-people me-1"></i> My Patient Records</a>
+            <a href="{% url 'doctor_profile_edit' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-gear me-1"></i> Update Profile</a>
+        </div>
+    </div>
+
+    <!-- Doctor Metrics Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block">TODAY'S APPOINTMENTS</span>
+                    <h3 class="fw-bold mb-0 text-primary">{{ today_appointments.count }}</h3>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block">PENDING APPROVALS</span>
+                    <h3 class="fw-bold mb-0 text-warning">{{ pending_appointments.count }}</h3>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block">COMPLETED CONSULTS</span>
+                    <h3 class="fw-bold mb-0 text-success">{{ completed_count }}</h3>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small fw-semibold d-block">RECORDED EARNINGS</span>
+                    <h3 class="fw-bold mb-0 text-dark">${{ total_earnings_recorded|floatformat:2 }}</h3>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Schedule Table -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-calendar2-day text-primary me-2"></i>Today's Clinical Appointments ({{ today|date:"M d, Y" }})</h5>
+                    <span class="badge bg-light text-muted border">{{ today_appointments.count }} Slots</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time Slot</th>
+                                <th>Patient Name</th>
+                                <th>Reason / Symptoms</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in today_appointments %}
+                                <tr>
+                                    <td><span class="badge bg-primary-subtle text-primary fw-bold">{{ appt.get_appointment_time_display }}</span></td>
+                                    <td>
+                                        <strong>{{ appt.patient.full_name }}</strong>
+                                        <small class="d-block text-muted">ID: {{ appt.patient.patient_id }}</small>
+                                    </td>
+                                    <td><small class="text-muted">{{ appt.symptoms|truncatechars:40 }}</small></td>
+                                    <td>
+                                        {% if appt.status == 'COMPLETED' %}<span class="badge bg-success">Completed</span>
+                                        {% elif appt.status == 'CONFIRMED' %}<span class="badge bg-primary">Confirmed</span>
+                                        {% elif appt.status == 'PENDING' %}<span class="badge bg-warning text-dark">Pending</span>
+                                        {% else %}<span class="badge bg-secondary">Cancelled</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-outline-secondary" title="View details"><i class="bi bi-eye"></i></a>
+                                            {% if appt.status != 'COMPLETED' %}
+                                                <a href="{% url 'create_prescription' appt.pk %}" class="btn btn-primary" title="Prescribe & Complete"><i class="bi bi-prescription"></i> Consult</a>
+                                            {% else %}
+                                                <a href="{% url 'prescription_detail' appt.prescription.pk %}" class="btn btn-outline-success" title="View Rx"><i class="bi bi-file-earmark-medical"></i> Rx</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No appointments scheduled for today.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Review / Upcoming schedule -->
+        <div class="col-lg-4">
+            <div class="card card-custom p-4 mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-hourglass-split text-warning me-2"></i>Pending Booking Requests</h5>
+                <div class="list-group list-group-flush">
+                    {% for appt in pending_appointments %}
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-0">{{ appt.patient.full_name }}</h6>
+                                    <small class="text-muted">{{ appt.appointment_date }} @ {{ appt.get_appointment_time_display }}</small>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <form method="post" action="{% url 'update_appointment_status' appt.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="CONFIRMED">
+                                        <button type="submit" class="btn btn-success btn-sm py-0 px-2" title="Confirm"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                    <form method="post" action="{% url 'update_appointment_status' appt.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="CANCELLED">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Decline"><i class="bi bi-x-lg"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small my-2">No pending booking requests.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Upcoming Schedule -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-calendar-event text-info me-2"></i>Upcoming Days</h5>
+                <div class="list-group list-group-flush">
+                    {% for appt in upcoming_appointments %}
+                        <div class="list-group-item px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-light text-dark border">{{ appt.appointment_date }}</span>
+                                    <span class="small fw-semibold ms-1">{{ appt.patient.full_name }}</span>
+                                </div>
+                                <small class="text-muted">{{ appt.get_appointment_time_display }}</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small my-2">No upcoming appointments in next 5 days.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

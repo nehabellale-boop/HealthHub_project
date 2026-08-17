@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Doctors & Medical Specialists - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="py-3">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1"><i class="bi bi-person-badge text-primary me-2"></i>Medical Specialists Directory</h2>
+        <p class="text-muted mb-0">Browse our certified doctors, department specialists, and consultation availability.</p>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card card-custom p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search doctor name, specialization, qualification...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="department" class="form-select">
+                    <option value="">All Clinical Departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_dept|stringformat:"s" == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter me-1"></i> Filter</button>
+                {% if query or selected_dept %}
+                    <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Doctors Cards Grid -->
+    <div class="row g-4">
+        {% for doc in doctors %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary fs-3">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">{{ doc.full_name }}</h5>
+                            <span class="badge bg-primary-subtle text-primary">{{ doc.specialization }}</span>
+                            <small class="d-block text-muted mt-1">{{ doc.department.name }}</small>
+                        </div>
+                    </div>
+
+                    <div class="small text-muted mb-3 flex-grow-1">
+                        <p class="mb-1"><i class="bi bi-mortarboard me-2"></i><strong>Qualification:</strong> {{ doc.qualification }}</p>
+                        <p class="mb-1"><i class="bi bi-briefcase me-2"></i><strong>Experience:</strong> {{ doc.experience_years }} Years</p>
+                        <p class="mb-1"><i class="bi bi-currency-dollar me-2"></i><strong>Consultation Fee:</strong> ${{ doc.consultation_fee }}</p>
+                        <p class="mb-0">
+                            <i class="bi bi-circle-fill me-1 {% if doc.availability_status == 'AVAILABLE' %}text-success{% elif doc.availability_status == 'BUSY' %}text-warning{% else %}text-secondary{% endif %}"></i>
+                            {{ doc.get_availability_status_display }}
+                        </p>
+                    </div>
+
+                    <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center">
+                        <a href="{% url 'doctor_detail' doc.pk %}" class="btn btn-outline-secondary btn-sm">View Profile</a>
+                        {% if user.is_authenticated and user.role == 'PATIENT' %}
+                            <a href="{% url 'book_appointment_patient' %}?doctor={{ doc.pk }}" class="btn btn-primary btn-sm"><i class="bi bi-calendar-plus me-1"></i> Book Slot</a>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Book Appointment</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No doctors found matching the search criteria.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

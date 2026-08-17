@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Appointment - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6">
+        <div class="card card-custom p-4 text-center">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning mx-auto mb-3">
+                <i class="bi bi-calendar-x-fill fs-3"></i>
+            </div>
+            <h4 class="fw-bold mb-2">Cancel Appointment</h4>
+            <p class="text-muted mb-4">
+                Are you sure you want to cancel the scheduled consultation <strong>{{ appointment.appointment_id }}</strong> on <strong>{{ appointment.appointment_date }} ({{ appointment.get_appointment_time_display }})</strong> with <strong>Dr. {{ appointment.doctor.full_name }}</strong>?
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'appointment_detail' appointment.pk %}" class="btn btn-light border px-4">Keep Appointment</a>
+                    <button type="submit" class="btn btn-danger px-4"><i class="bi bi-x-circle me-1"></i> Confirm Cancellation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

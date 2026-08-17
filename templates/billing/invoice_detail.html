@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice {{ payment.invoice_number }} - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Printable Invoice Card -->
+            <div class="card card-custom p-4 p-md-5 bg-white border print-section">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-primary text-white">
+                            <i class="bi bi-hospital fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-primary">{{ hospital_name }}</h4>
+                            <p class="text-muted small mb-0">742 Evergreen Healthcare Ave | Ph: +1 (800) 555-911 | accounts@stjudehospital.org</p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge {% if payment.payment_status == 'PAID' %}bg-success{% elif payment.payment_status == 'PARTIALLY_PAID' %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6 px-3 py-2">
+                            {{ payment.get_payment_status_display }}
+                        </span>
+                        <div class="mt-2 text-muted small">INVOICE: <strong>{{ payment.invoice_number }}</strong></div>
+                    </div>
+                </div>
+
+                <!-- Invoice Details & Billing Info -->
+                <div class="row g-3 mb-4 pb-3 border-bottom">
+                    <div class="col-6">
+                        <small class="text-muted fw-bold d-block">BILLED TO (PATIENT)</small>
+                        <h5 class="fw-bold mb-1 text-dark">{{ payment.patient.full_name }}</h5>
+                        <div class="text-muted small">Patient ID: {{ payment.patient.patient_id }}</div>
+                        <div class="text-muted small">Phone: {{ payment.patient.phone }}</div>
+                        <div class="text-muted small">Email: {{ payment.patient.email }}</div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted fw-bold d-block">INVOICE METADATA</small>
+                        <div class="text-muted small">Date: <strong>{{ payment.payment_date|date:"F d, Y" }}</strong></div>
+                        <div class="text-muted small">Appointment Ref: <strong>{{ payment.appointment.appointment_id }}</strong></div>
+                        <div class="text-muted small">Attending Doctor: <strong>Dr. {{ payment.appointment.doctor.full_name }}</strong></div>
+                        <div class="text-muted small">Payment Mode: <strong>{{ payment.get_payment_mode_display }}</strong></div>
+                    </div>
+                </div>
+
+                <!-- Line Items Table -->
+                <div class="table-responsive mb-4">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Service Description</th>
+                                <th>Department</th>
+                                <th class="text-end">Fee Rate</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <strong>Outpatient Clinical Consultation & Medical Review</strong>
+                                    <div class="text-muted small">Consultation with Dr. {{ payment.appointment.doctor.full_name }} on {{ payment.appointment.appointment_date }}</div>
+                                </td>
+                                <td>{{ payment.appointment.department.name }}</td>
+                                <td class="text-end">${{ payment.total_amount }}</td>
+                                <td class="text-end fw-bold">${{ payment.total_amount }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Financial Totals -->
+                <div class="row justify-content-end mb-4">
+                    <div class="col-md-5">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Gross Amount:</span>
+                                <strong>${{ payment.total_amount }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-success fw-semibold">Amount Paid:</span>
+                                <strong class="text-success">${{ payment.paid_amount }}</strong>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between fs-5">
+                                <span class="fw-bold">Balance Due:</span>
+                                <span class="fw-bold {% if payment.due_amount > 0 %}text-danger{% else %}text-success{% endif %}">${{ payment.due_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if payment.notes %}
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <small class="text-muted fw-bold d-block">TRANSACTION NOTES / REMARKS:</small>
+                        <p class="text-muted small mb-0">{{ payment.notes }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Footer & Disclaimer -->
+                <div class="border-top pt-4 text-center text-muted small">
+                    <p class="mb-1">Thank you for entrusting your healthcare to {{ hospital_name }}.</p>
+                    <p class="mb-0">This is a computer-generated tax invoice. Issued by: {{ payment.created_by.get_full_name|default:"Hospital Billing System" }}.</p>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-3 d-print-none">
+                <a href="{% url 'payment_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Invoices</a>
+                <div class="d-flex gap-2">
+                    {% if user.role in 'ADMIN RECEPTIONIST HR' or user.is_superuser %}
+                        <a href="{% url 'payment_update' payment.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil-square me-1"></i> Update Payment</a>
+                    {% endif %}
+                    <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer me-2"></i> Print Official Invoice</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

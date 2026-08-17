@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Reception Desk Portal - St. Jude Hospital{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
+                Front Desk Operations
+            </span>
+            <h2 class="fw-bold mb-1">Receptionist Desk</h2>
+            <p class="text-muted mb-0">Daily patient intake, consultation scheduling, walk-ins, and fee billing management.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'patient_create' %}" class="btn btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Register Walk-in Patient</a>
+            <a href="{% url 'book_appointment_staff' %}" class="btn btn-outline-primary"><i class="bi bi-calendar-plus me-1"></i> Schedule Consultation</a>
+            <a href="{% url 'payment_create' %}" class="btn btn-success"><i class="bi bi-receipt me-1"></i> Create Fee Invoice</a>
+        </div>
+    </div>
+
+    <!-- Quick Stats / Actions -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-calendar-check fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">{{ today_appointments.count }}</div>
+                    <small class="text-muted">Today's Appointments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-person-badge fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">{{ new_registrations.count }}</div>
+                    <small class="text-muted">New Registrations Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-hourglass-split fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">{{ pending_payments.count }}</div>
+                    <small class="text-muted">Pending Invoices</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-cash-stack fs-4"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold">{{ recent_payments.count }}</div>
+                    <small class="text-muted">Settled Payments</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Queue and Tables -->
+    <div class="row g-4 mb-4">
+        <!-- Today's Appointment Queue -->
+        <div class="col-lg-7">
+            <div class="card card-custom h-100">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i> Today's Consultation Schedule</h5>
+                    <a href="{% url 'appointment_list' %}?date={{ today }}" class="btn btn-link btn-sm text-decoration-none">All Appointments <i class="bi bi-chevron-right"></i></a>
+                </div>
+                <div class="card-body p-0">
+                    {% if today_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Patient</th>
+                                        <th>Doctor / Dept</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appt in today_appointments %}
+                                        <tr>
+                                            <td class="fw-bold text-dark">{{ appt.get_appointment_time_display }}</td>
+                                            <td>
+                                                <strong>{{ appt.patient.full_name }}</strong>
+                                                <div class="text-muted small">Ph: {{ appt.patient.phone }}</div>
+                                            </td>
+                                            <td>
+                                                <div>Dr. {{ appt.doctor.full_name }}</div>
+                                                <small class="text-muted">{{ appt.department.name }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if appt.status == 'CONFIRMED' %}bg-primary{% elif appt.status == 'COMPLETED' %}bg-success{% elif appt.status == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                                    {{ appt.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{% url 'appointment_detail' appt.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                                {% if not appt.fee_payment %}
+                                                    <a href="{% url 'payment_create' %}?appointment={{ appt.pk }}" class="btn btn-sm btn-outline-success" title="Bill Fee"><i class="bi bi-receipt"></i></a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-calendar-event fs-2 d-block mb-2 text-secondary"></i>
+                            No appointments scheduled for today yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Intake & Billing Side -->
+        <div class="col-lg-5">
+            <div class="card card-custom h-100">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-credit-card text-success me-2"></i> Recent Invoices & Dues</h5>
+                    <a href="{% url 'payment_list' %}" class="btn btn-link btn-sm text-decoration-none">All Invoices <i class="bi bi-chevron-right"></i></a>
+                </div>
+                <div class="card-body p-0">
+                    {% if pending_payments or recent_payments %}
+                        <div class="list-group list-group-flush">
+                            {% for p in pending_payments %}
+                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">{{ p.patient.full_name }}</div>
+                                        <small class="text-muted">Invoice: {{ p.invoice_number }} | Due: ${{ p.due_amount }}</small>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-warning text-dark">{{ p.get_payment_status_display }}</span>
+                                        <a href="{% url 'payment_update' p.pk %}" class="btn btn-sm btn-outline-success"><i class="bi bi-pencil-square"></i></a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% for p in recent_payments %}
+                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">{{ p.patient.full_name }}</div>
+                                        <small class="text-muted">Invoice: {{ p.invoice_number }} | Paid: ${{ p.paid_amount }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-success">Paid</span>
+                                        <a href="{% url 'invoice_detail' p.pk %}" class="btn btn-sm btn-outline-secondary ms-1"><i class="bi bi-eye"></i></a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center text-muted">No invoices generated yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
