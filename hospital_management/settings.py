@@ -51,8 +51,10 @@ ROOT_URLCONF = 'hospital_management.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'dist'],   # ← 'dist' add kiya
         'APP_DIRS': True,
+        ...
+
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',

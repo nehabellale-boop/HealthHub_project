@@ -9,10 +9,8 @@ from .models import Department
 from .forms import DepartmentForm
 
 def home_view(request):
-    departments = Department.objects.all()[:6]
-    return render(request, 'core/home.html', {
-        'departments': departments,
-    })
+    return render(request, 'index.html')   # dist/index.html serve karega
+    
 
 def about_view(request):
     return render(request, 'core/about.html')
